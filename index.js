@@ -1,11 +1,12 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
+const path = require('path');
 const log = console.log;
 
 let currentNumber = 1, // 一页30条 < 30
     currentPageNumber = 1, // 当前页码
     totalPageNumber = 0 // 总共页码
-    browser;
+    browser = null;
 
 // const url = 'http://www.gangqinpu.com/html/34546.htm';
 const url = 'http://www.gangqinpu.com/pux/pulist.aspx';
@@ -85,12 +86,15 @@ const getImageForUrl = async (url) => {
         return { title, top, left, width, height, swiperCount }
     }, PIANO_SWIPER);
 
-    let dirName = imgBoxInfo.title[3].replace(/\s+/,'');
-    let fileName = imgBoxInfo.title[4].replace(/\s+/,'');
+    let dirName = imgBoxInfo.title[3].trim().replace(/s+|\//g,'-');
+    let fileName = imgBoxInfo.title[4].trim().replace(/\s+|\//g,'-');
 
-    if (!fsExistsSync(`./picture/${dirName}`)) {
-        fs.mkdirSync(`./picture/${dirName}`);
+    let dirPath = path.join(__dirname, `./picture/${dirName}`);
+    console.log('dirPath',dirPath);
+    if (!fs.existsSync(dirPath)) {
+        mkdirsSync(dirPath);
     };
+    console.log('dirName:',dirName,';fileName',fileName);
     // 生成图片 保存
     for (let i = 0; i < imgBoxInfo.swiperCount; i++) {
         if (i != 0) {
@@ -98,7 +102,7 @@ const getImageForUrl = async (url) => {
             await newPage.waitFor(500);
         };
         await newPage.screenshot({
-            path: `./picture/${dirName}/${fileName.substr(0, 10)}${i}.jpeg`,
+            path: `${dirPath}/${fileName.substr(0, 10)}${i}.jpeg`,
             type: 'jpeg',
             quality: 100,
             clip: {
@@ -109,15 +113,26 @@ const getImageForUrl = async (url) => {
             }
         })
     }
-    await newPage.close()
+    await newPage.close();
 };
-function fsExistsSync(path) {
-    try{
-        fs.accessSync(path,fs.F_OK);
-    }catch(e){
-        return false;
+// function fsExistsSync(path) {
+//     try{
+//         fs.accessSync(path,fs.F_OK);
+//     }catch(e){
+//         return false;
+//     }
+//     return true;
+// };
+//同步递归创建目录
+function mkdirsSync(dirname) {
+    if (fs.existsSync(dirname)) {
+      return true;
+    } else {
+      if (mkdirsSync(path.dirname(dirname))) {
+        fs.mkdirSync(dirname);
+        return true;
+      }
     }
-    return true;
-};
+  }
 
 run(url);
