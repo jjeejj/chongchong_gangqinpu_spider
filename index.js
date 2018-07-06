@@ -55,7 +55,7 @@ async function run(url) {
                 })
                 return item;
             }, PIANO_CONTAINER);
-            console.log('nextUrl piano_info', piano_info);
+            // console.log('nextUrl piano_info', piano_info);
             // 每页的30个图片 连接
             for (let i = 0; i < piano_info.length; i++) {
                 let pianoTemp = piano_info[i],dirName,dirPath,isLoading = 'loading';
@@ -66,10 +66,14 @@ async function run(url) {
                     mkdirsSync(dirPath);
                     fs.writeFileSync(`${dirPath}/index.txt`,'loading');
                 }else{
-                    isLoading = fs.readFileSync(`${dirPath}/index.txt`); //完成的话 是 finished
+                    isLoading = fs.readFileSync(`${dirPath}/index.txt`,'utf8'); //完成的话 是 finished
                 };
-                if(isLoading == 'loading'){
-                    await getImageForUrl(pianoTemp);
+                console.log('dirName:',dirName , 'isLoading:',isLoading );
+                if(isLoading !== 'finished'){
+                    let result = await getImageForUrl(pianoTemp);
+                    if(!result){
+                        fs.writeFileSync(`${dirPath}/index.txt`,'error');
+                    };
                 }else{
                     console.log(`钢琴谱 作者 ${pianoTemp.authorName}  曲谱名称 ${pianoTemp.musicScoreName} 已经获取完成 跳过`);
                     continue;
@@ -113,7 +117,7 @@ const getImageForUrl = async (urlObj) => {
         let dirPath = path.join(__dirname, dirName);
         // let dirName = imgBoxInfo.title[3].trim().replace(/s+|\//g, '-');
         let fileName = imgBoxInfo.title[4].trim().replace(/\//g, '-');
-
+        console.log('保存曲谱',dirPath,':',fileName);
         // let dirPath = path.join(__dirname, `./picture/${dirName}`);
         // console.log('dirPath', dirPath);
         // if (!fs.existsSync(dirPath)) {
@@ -138,14 +142,20 @@ const getImageForUrl = async (urlObj) => {
                 }
             })
         };
+        //index.txt  loading ---finished
+        fs.writeFileSync(`${dirPath}/index.txt`,'finished');
         getImageForUrlErrorCount = 0;
         await newPage.close();
+        return true;
     } catch (err) {
         newPage ? await newPage.close() : "";
         console.log('getImageForUrl 错误 作者：',urlObj.authorName , '曲谱名称：', urlObj.musicScoreName, '错误次数为',getImageForUrlErrorCount);
         if(getImageForUrlErrorCount < 3){
             ++getImageForUrlErrorCount;
             await getImageForUrl(urlObj);
+        }else{
+            console.log('getImageForUrl 错误 作者：',urlObj.authorName , '曲谱名称：', urlObj.musicScoreName, '错误次数为',getImageForUrlErrorCount,'达到3次 跳过');
+            return false; //失败次数过多，跳过
         };
     };
 };
