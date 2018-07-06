@@ -61,7 +61,7 @@ async function run(url) {
                 let pianoTemp = piano_info[i],dirName,dirPath,isLoading = 'loading';
                 dirName = `./picture/${pianoTemp.authorName}/${pianoTemp.musicScoreName}`;
                 //判断对应的曲目是否已经获取完成
-                dirPath = path.join(__dirname, `./picture/${dirName}`);
+                dirPath = path.join(__dirname,dirName);
                 if (!fs.existsSync(dirPath)) {
                     mkdirsSync(dirPath);
                     fs.writeFileSync(`${dirPath}/index.txt`,'loading');
@@ -110,7 +110,7 @@ const getImageForUrl = async (urlObj) => {
 
         let dirName = `./picture/${urlObj.authorName}/${urlObj.musicScoreName}`;
         //判断对应的曲目是否已经获取完成
-        let dirPath = path.join(__dirname, `./picture/${dirName}`);
+        let dirPath = path.join(__dirname, dirName);
         // let dirName = imgBoxInfo.title[3].trim().replace(/s+|\//g, '-');
         let fileName = imgBoxInfo.title[4].trim().replace(/\//g, '-');
 
