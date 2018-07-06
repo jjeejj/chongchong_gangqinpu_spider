@@ -102,7 +102,7 @@ const getImageForUrl = async (url) => {
             await newPage.waitFor(500);
         };
         await newPage.screenshot({
-            path: `${dirPath}/${fileName.substr(0, 10)}${i}.jpeg`,
+            path: `${dirPath}/${fileName}-${i}.jpeg`,
             type: 'jpeg',
             quality: 100,
             clip: {
